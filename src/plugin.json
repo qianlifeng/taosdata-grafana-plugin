@@ -4,6 +4,12 @@
   "name": "taosdata-grafana-plugin",
   "id": "taosdata-grafana-plugin",
   "metrics": true,
+  "routes": [
+    {
+      "path": "route",
+      "url": "{{ .JsonData.host }}"
+    }
+  ],
   "info": {
     "description": "Grafana plugin for taosdata.com",
     "author": {

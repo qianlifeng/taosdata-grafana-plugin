@@ -50,7 +50,7 @@ export class ConfigEditor extends PureComponent<Props, State> {
             inputWidth={20}
             onChange={this.onHostChange}
             value={jsonData.host || ''}
-            placeholder="http://127.0.0.1:6064"
+            placeholder="http://127.0.0.1:6041"
           />
         </div>
 

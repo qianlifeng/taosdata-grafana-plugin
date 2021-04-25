@@ -15,10 +15,12 @@ import { MyQuery, MyDataSourceOptions, defaultQuery } from './types';
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   dataSourceConfig: MyDataSourceOptions;
+  url?: string;
 
   constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
     super(instanceSettings);
     this.dataSourceConfig = instanceSettings.jsonData;
+    this.url = instanceSettings.url;
   }
 
   async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
@@ -26,28 +28,28 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       const query = defaults(target, defaultQuery);
       return getBackendSrv()
         .datasourceRequest({
-          url: this.dataSourceConfig.host + '/rest/sql',
+          url: this.url + '/route' + '/rest/sql',
           method: 'POST',
           data: this.generateSql(options, query),
           headers: {
             Authorization: this.getAuthorization(),
           },
         })
-        .then(response => {
-          let fields: Array<FieldDTO> = [];
-          response.data.column_meta.forEach((meta, index) => {
+        .then((response: any) => {
+          let fields: FieldDTO[] = [];
+          response.data.column_meta.forEach((meta: any[], index: any) => {
             const fieldName = meta[0];
             const filedTypeInt = meta[1];
 
             let fieldDto: FieldDTO = { name: fieldName };
 
-            if (filedTypeInt == 1) {
+            if (filedTypeInt === 1) {
               fieldDto.type = FieldType.boolean;
-            } else if (filedTypeInt == 4 || filedTypeInt == 6 || filedTypeInt == 7) {
+            } else if (filedTypeInt === 4 || filedTypeInt === 6 || filedTypeInt === 7) {
               fieldDto.type = FieldType.number;
-            } else if (filedTypeInt == 9) {
+            } else if (filedTypeInt === 9) {
               fieldDto.type = FieldType.time;
-            } else if (filedTypeInt == 10) {
+            } else if (filedTypeInt === 10) {
               fieldDto.type = FieldType.string;
             } else {
               fieldDto.type = FieldType.other;
@@ -57,8 +59,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           });
 
           fields.forEach((field, fieldIndex) => {
-            const values = [];
-            response.data.data.forEach(data => {
+            const values: any[] = [];
+            response.data.data.forEach((data: any[]) => {
               values.push(data[fieldIndex]);
             });
             field.values = values;
@@ -85,7 +87,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
   async testDatasource() {
     const response = await getBackendSrv().datasourceRequest({
-      url: this.dataSourceConfig.host + '/grafana/heartbeat',
+      url: this.url + '/route' + '/grafana/heartbeat',
       method: 'GET',
       headers: {
         Authorization: this.getAuthorization(),
@@ -103,22 +105,22 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     return 'Basic ' + btoa(this.dataSourceConfig.user + ':' + this.dataSourceConfig.password);
   }
 
-  generateSql(options, target) {
+  generateSql(options: DataQueryRequest<MyQuery>, target: Partial<MyQuery> & MyQuery) {
     var sql = target.sql;
-    if (sql == null || sql == '') {
+    if (sql === null || sql === '') {
       return sql;
     }
 
     var queryStart = 'now-1h';
-    if (options != null && options.range != null && options.range.from != null) {
+    if (options !== null && options.range !== null && options.range.from !== null) {
       queryStart = options.range.from.toISOString();
     }
 
     var queryEnd = 'now';
-    if (options != null && options.range != null && options.range.to != null) {
+    if (options !== null && options.range !== null && options.range.to !== null) {
       queryEnd = options.range.to.toISOString();
     }
-    var intervalMs = options.intervalMs || '20000';
+    var intervalMs = options.intervalMs + '' || '20000';
 
     intervalMs += 'a';
     sql = sql.replace(/^\s+|\s+$/gm, '');
